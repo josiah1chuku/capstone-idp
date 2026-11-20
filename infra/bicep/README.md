@@ -53,9 +53,25 @@ KUBERNETES_VERSION=1.33 ./scripts/deploy.sh --what-if
 # Deploy (about 10 minutes) and configure kubectl
 KUBERNETES_VERSION=1.33 ./scripts/deploy.sh
 
-# Tear everything down when you're done
+# End of a work session: stop the nodes, keep everything else
+./scripts/stop.sh
+./scripts/start.sh      # next session
+
+# Longer breaks, and between experiment runs: delete everything
 ./scripts/teardown.sh
 ```
+
+## Cost
+
+Rough figures at East US list prices:
+
+| State | What you pay for | Rough cost |
+|---|---|---|
+| Running | 2 × D2s_v5 nodes, load balancer, logs, registry | about $5 a day |
+| Stopped (`stop.sh`) | Registry, public IP; Key Vault and logs near zero | about $10 a month |
+| Torn down (`teardown.sh`) | Nothing (the optional budget is free) | $0 |
+
+Stop the cluster at the end of every session. Left running, it would use up a $100 student credit in about three weeks.
 
 To also create the cost budget, set `BUDGET_ALERT_EMAIL` and `BUDGET_START_DATE` (the first day of the current month, e.g. `2026-11-01`) when you deploy. These are read from environment variables, so your email address is never committed.
 
