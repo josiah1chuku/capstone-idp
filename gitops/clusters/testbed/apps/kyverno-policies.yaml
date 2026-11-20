@@ -1,0 +1,25 @@
+# The platform's own Kyverno policies, from policies/kyverno/. Synced after Kyverno
+# itself (wave 1) so its CRDs exist first.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno-policies
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/josiah1chuku/capstone-idp.git
+    targetRevision: HEAD
+    path: policies/kyverno
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - SkipDryRunOnMissingResource=true

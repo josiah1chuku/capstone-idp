@@ -1,0 +1,27 @@
+# Capstone proposal: kept local until it has been graded
+docs/proposal/
+
+# Credentials and local config. Never commit these.
+.env
+.env.*
+*.kubeconfig
+kubeconfig*
+.kube/
+*.pem
+*.key
+*.pfx
+.azure/
+
+# Bicep build output
+infra/bicep/**/*.json
+!infra/bicep/**/bicepconfig.json
+
+# Experiment scratch (raw results that should be kept go in evaluation/results/)
+*.tmp
+.cache/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store

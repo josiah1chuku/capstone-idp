@@ -1,0 +1,31 @@
+# Argo CD manages its own installation, so upgrades and config changes go through Git.
+# The chart version here is also what scripts/bootstrap.sh installs; change it only here.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.11.7 # Argo CD v3.5.7
+      helm:
+        releaseName: argocd
+        valueFiles:
+          - $values/gitops/clusters/testbed/argocd-values.yaml
+    - repoURL: https://github.com/josiah1chuku/capstone-idp.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false # never let a bad commit delete Argo CD itself
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

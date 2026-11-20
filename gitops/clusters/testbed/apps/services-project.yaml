@@ -1,0 +1,32 @@
+# AppProject for developer services. Limits what a provisioned service can touch, even
+# if a template or commit is wrong: only this repo, no platform namespaces, and no
+# cluster-wide resources except its own Namespace.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: services
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: Services provisioned through the self-service platform
+  sourceRepos:
+    - https://github.com/josiah1chuku/capstone-idp.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-system"
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-public"
+    - server: https://kubernetes.default.svc
+      namespace: "!kube-node-lease"
+    - server: https://kubernetes.default.svc
+      namespace: "!argocd"
+    - server: https://kubernetes.default.svc
+      namespace: "!kyverno"
+    - server: https://kubernetes.default.svc
+      namespace: "!gatekeeper-system"
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

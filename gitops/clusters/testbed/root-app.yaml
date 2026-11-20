@@ -1,0 +1,22 @@
+# Root ("app of apps") Application. scripts/bootstrap.sh applies this once by hand;
+# from then on everything under apps/ is installed and kept in sync from Git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/josiah1chuku/capstone-idp.git
+    targetRevision: HEAD
+    path: gitops/clusters/testbed/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

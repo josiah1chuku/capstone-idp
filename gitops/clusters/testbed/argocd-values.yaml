@@ -1,0 +1,52 @@
+# Helm values for Argo CD on the testbed.
+# Used twice: by scripts/bootstrap.sh for the first install, and by apps/argocd.yaml
+# once Argo CD manages itself. Both must use this one file so they never disagree.
+
+dex:
+  enabled: false # no SSO on the testbed; sign in as admin
+
+notifications:
+  enabled: false # request status goes through the platform API instead (FR6)
+
+configs:
+  cm:
+    # How often Argo CD polls Git. Directly affects provisioning lead time (H1):
+    # a new service waits up to this long before Argo CD sees its commit.
+    # Record this value with every H1 run; a Git webhook would remove the wait.
+    timeout.reconciliation: 60s
+
+    # Report child Applications as healthy only when they are, so sync waves in the
+    # root app wait for each layer (e.g. Kyverno before its policies).
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {}
+      hs.status = "Progressing"
+      hs.message = ""
+      if obj.status ~= nil then
+        if obj.status.health ~= nil then
+          hs.status = obj.status.health.status
+          if obj.status.health.message ~= nil then
+            hs.message = obj.status.health.message
+          end
+        end
+      end
+      return hs
+
+# Single replicas: this is a testbed, not production. Controller limits are set so
+# the H3 load tests can report controller CPU and memory against a known ceiling.
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+server:
+  replicas: 1
+
+repoServer:
+  replicas: 1
+
+applicationSet:
+  replicas: 1

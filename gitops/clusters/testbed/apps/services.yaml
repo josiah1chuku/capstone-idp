@@ -1,0 +1,41 @@
+# One Argo CD Application per provisioned service. The control plane provisions a
+# service by committing gitops/apps/<service>/ (FR2, FR3) and decommissions it by
+# deleting that folder (FR8): the Application and everything it deployed are removed.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - git:
+        repoURL: https://github.com/josiah1chuku/capstone-idp.git
+        revision: HEAD
+        directories:
+          - path: gitops/apps/*
+  template:
+    metadata:
+      name: "svc-{{ .path.basename }}"
+      labels:
+        platform.idp/managed-by: control-plane
+        platform.idp/service: "{{ .path.basename }}"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: services
+      source:
+        repoURL: https://github.com/josiah1chuku/capstone-idp.git
+        targetRevision: HEAD
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .path.basename }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true # reverts manual changes (FR7, H4)
